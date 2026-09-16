@@ -1,6 +1,8 @@
 // server/routes/uploadRoutes.js
 import express from 'express';
-import upload from '../config/cloudinary.js';
+// 1. यहाँ डिफ़ॉल्ट इम्पोर्ट हटाकर कर्ली ब्रेसेस के साथ सही { uploadCloud } लगाएँ
+import { uploadCloud } from '../config/cloudinary.js';
+
 import { protect } from '../middleware/authMiddleware.js';
 import { authorizeRoles } from '../middleware/roleMiddleware.js';
 
@@ -11,7 +13,8 @@ router.post(
   '/',
   protect,
   authorizeRoles('owner', 'admin'),
-  upload.array('images', 5),
+  // 2. यहाँ 'upload' की जगह 'uploadCloud' का इस्तेमाल करें
+  uploadCloud.array('images', 5),
   (req, res) => {
     try {
       if (!req.files || req.files.length === 0) {
