@@ -6,6 +6,7 @@ import connectDB from './config/db.js';
 import router from './routes/authRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use('/api/auth', router);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/upload', uploadRoutes);
 // Health Check Route
 app.get('/', (req, res) => {
   res.json({ message: 'Room Radar API is running...' });
