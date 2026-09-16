@@ -17,7 +17,11 @@ connectDB();
 const app = express();
 
 // Global Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*', // या फिर अपना सटीक फ्रंटएंड Vercel URL डाल सकते हैं
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 app.use('/api/auth', router);
