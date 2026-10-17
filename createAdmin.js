@@ -9,27 +9,41 @@ const makeAdmin = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
 
-    const adminEmail = 'kamalkumarlak56@gmail.com';
-    const adminPassword = 'admin1234';
+    const adminName = process.env.ADMIN_NAME || 'Super Admin';
+    const adminEmail = (
+      process.env.ADMIN_EMAIL || 'kamalkumarlak56@gmail.com'
+    )
+      .toLowerCase()
+      .trim();
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin1234';
+    const adminPhone = process.env.ADMIN_PHONE || '8231050912';
 
-    // Check if admin already exists
+    // Ensure no other user has admin role (strictly only one admin)
+    await User.updateMany(
+      { email: { $ne: adminEmail }, role: 'admin' },
+      { $set: { role: 'user' } }
+    );
+
     const existingAdmin = await User.findOne({ email: adminEmail });
     if (existingAdmin) {
+      existingAdmin.name = adminName;
       existingAdmin.role = 'admin';
+      existingAdmin.password = adminPassword;
+      existingAdmin.phone = adminPhone;
       await existingAdmin.save();
-      console.log('Existing user updated to admin role successfully!');
+      console.log('Single Super Admin account updated from .env successfully!');
     } else {
-      // Create fresh admin user
       await User.create({
-        name: 'Super Admin',
+        name: adminName,
         email: adminEmail,
-        password: adminPassword, // Password hook will automatically hash it
+        password: adminPassword,
         role: 'admin',
-        phone: '8231050912',
+        phone: adminPhone,
       });
-      console.log('New Admin account created successfully!');
+      console.log('New Single Super Admin account created from .env successfully!');
     }
 
+    console.log(`Admin Name: ${adminName}`);
     console.log(`Login Email: ${adminEmail}`);
     console.log(`Login Password: ${adminPassword}`);
     process.exit(0);

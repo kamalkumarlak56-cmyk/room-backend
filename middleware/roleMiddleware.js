@@ -1,6 +1,6 @@
 // server/middleware/roleMiddleware.js
 
-// Restrict access based on allowed roles
+// Restrict access based on allowed roles ('user', 'owner', 'admin')
 export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
