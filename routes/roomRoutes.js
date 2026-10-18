@@ -1,4 +1,3 @@
-// server/routes/roomRoutes.js
 import express from 'express';
 import {
   getApprovedRooms,
@@ -7,6 +6,7 @@ import {
   getMyRooms,
   updateRoom,
   deleteRoom,
+  toggleRoomAvailability,
   createRoomReview,
 } from '../controllers/roomController.js';
 import { protect, optionalProtect } from '../middleware/authMiddleware.js';
@@ -29,6 +29,7 @@ router.post('/:id/reviews', protect, createRoomReview);
 // Owner & Admin CRUD endpoints
 router.post('/', protect, authorizeRoles('owner', 'admin'), createRoom);
 router.put('/:id', protect, authorizeRoles('owner', 'admin'), updateRoom);
+router.patch('/:id/availability', protect, authorizeRoles('owner', 'admin'), toggleRoomAvailability);
 router.delete('/:id', protect, authorizeRoles('owner', 'admin'), deleteRoom);
 
 export default router;

@@ -45,8 +45,15 @@ const bookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['created', 'paid', 'failed'],
+      enum: ['created', 'paid', 'vacated', 'failed'],
       default: 'created',
+    },
+    isCurrentTenant: {
+      type: Boolean,
+      default: true,
+    },
+    vacatedAt: {
+      type: Date,
     },
     review: {
       rating: { type: Number, default: 0 },

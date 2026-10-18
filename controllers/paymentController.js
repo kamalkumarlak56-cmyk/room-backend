@@ -158,12 +158,12 @@ export const verifyRazorpayPayment = async (req, res) => {
 export const getMyBookings = async (req, res) => {
   try {
     const [tenantBookings, landlordBookings] = await Promise.all([
-      Booking.find({ tenant: req.user._id, status: 'paid' })
-        .populate('room', 'title rent roomType location images')
+      Booking.find({ tenant: req.user._id, status: { $in: ['paid', 'vacated'] } })
+        .populate('room', 'title rent roomType location images isAvailable')
         .populate('landlord', 'name email phone profilePic')
         .sort({ createdAt: -1 }),
-      Booking.find({ landlord: req.user._id, status: 'paid' })
-        .populate('room', 'title rent roomType location images')
+      Booking.find({ landlord: req.user._id, status: { $in: ['paid', 'vacated'] } })
+        .populate('room', 'title rent roomType location images isAvailable')
         .populate('tenant', 'name email phone profilePic')
         .sort({ createdAt: -1 }),
     ]);
@@ -176,3 +176,42 @@ export const getMyBookings = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Mark a tenant booking as vacated / past tenant & make room available
+// @route   PUT /api/payments/bookings/:id/vacate
+// @access  Private (Landlord or Admin)
+export const vacateBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    if (
+      booking.landlord.toString() !== req.user._id.toString() &&
+      req.user.role !== 'admin'
+    ) {
+      return res.status(403).json({ message: 'Not authorized to manage this booking' });
+    }
+
+    booking.status = 'vacated';
+    booking.isCurrentTenant = false;
+    booking.vacatedAt = new Date();
+    await booking.save();
+
+    // Mark room back to available
+    await Room.findByIdAndUpdate(booking.room, { isAvailable: true });
+
+    const updated = await Booking.findById(booking._id)
+      .populate('room', 'title rent roomType location images isAvailable')
+      .populate('tenant', 'name email phone profilePic');
+
+    res.json({
+      message: 'Tenant marked as vacated and room is now available again',
+      booking: updated,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

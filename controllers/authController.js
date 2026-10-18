@@ -27,6 +27,13 @@ const formatUserResponse = (user, includeToken = true) => {
     documentVerified: isDocVerified,
     aadharDetails: user.aadharDetails || { number: '', documentUrl: '' },
     panDetails: user.panDetails || { number: '', documentUrl: '' },
+    accountDetails: user.accountDetails || {
+      accountHolderName: '',
+      bankName: '',
+      accountNumber: '',
+      ifscCode: '',
+      upiId: '',
+    },
     wishlist: user.wishlist || [],
     searchedRooms: user.searchedRooms || [],
     visitedRooms: user.visitedRooms || [],
@@ -220,8 +227,18 @@ export const updateUserProfile = async (req, res) => {
       user.documentVerified = Boolean(req.body.documentVerified);
     }
 
-    // Allow switching between 'user' and 'owner' role if not admin
-    if (user.role !== 'admin' && (role === 'user' || role === 'owner')) {
+    if (req.body.accountDetails) {
+      user.accountDetails = {
+        accountHolderName: req.body.accountDetails.accountHolderName !== undefined ? req.body.accountDetails.accountHolderName : user.accountDetails?.accountHolderName || '',
+        bankName: req.body.accountDetails.bankName !== undefined ? req.body.accountDetails.bankName : user.accountDetails?.bankName || '',
+        accountNumber: req.body.accountDetails.accountNumber !== undefined ? req.body.accountDetails.accountNumber : user.accountDetails?.accountNumber || '',
+        ifscCode: req.body.accountDetails.ifscCode !== undefined ? req.body.accountDetails.ifscCode : user.accountDetails?.ifscCode || '',
+        upiId: req.body.accountDetails.upiId !== undefined ? req.body.accountDetails.upiId : user.accountDetails?.upiId || '',
+      };
+    }
+
+    // Allow switching to 'user' or 'owner' role
+    if (role === 'user' || role === 'owner') {
       user.role = role;
     }
 

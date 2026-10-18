@@ -254,6 +254,7 @@ export const getMyRooms = async (req, res) => {
   try {
     const rooms = await Room.find({ owner: req.user._id })
       .populate('owner', 'name email phone profilePic role')
+      .populate('reviews.user', 'name profilePic email')
       .sort({ createdAt: -1 });
     res.json(rooms);
   } catch (error) {
@@ -380,6 +381,45 @@ export const deleteRoom = async (req, res) => {
 
     await room.deleteOne();
     res.json({ message: 'Room listing removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Toggle room availability (mark as available or occupied)
+// @route   PATCH /api/rooms/:id/availability
+// @access  Private (Landlord or Admin)
+export const toggleRoomAvailability = async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.id);
+
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+
+    if (
+      room.owner.toString() !== req.user._id.toString() &&
+      req.user.role !== 'admin'
+    ) {
+      return res.status(403).json({ message: 'Not authorized to modify this room' });
+    }
+
+    if (req.body.isAvailable !== undefined) {
+      room.isAvailable = Boolean(req.body.isAvailable);
+    } else {
+      room.isAvailable = !room.isAvailable;
+    }
+
+    await room.save();
+
+    const populated = await Room.findById(room._id)
+      .populate('owner', 'name email phone profilePic role')
+      .populate('reviews.user', 'name profilePic email');
+
+    res.json({
+      message: `Room status updated to ${room.isAvailable ? 'Available' : 'Booked/Occupied'}`,
+      room: populated,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
